@@ -17,6 +17,9 @@ jobs:
       - name: Prepare env file
         run: cp .env.infrastructure.example .env.infrastructure
 
+      - name: Check redis.conf exists
+        run: ls -la ./redis.conf
+
       - name: Validate docker-compose syntax
         run: docker compose -f docker-compose.infrastructure.yaml config
 
