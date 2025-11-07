@@ -41,7 +41,7 @@ jobs:
     name: 🚀 Deploy to server
     needs: infra-check
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout repository
