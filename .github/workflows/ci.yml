@@ -44,7 +44,9 @@ jobs:
     name: 🚀 Deploy to server
     needs: infra-check
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: production
 
     steps:
       - name: Checkout repository
@@ -60,19 +62,19 @@ jobs:
 
       - name: Deploy via SSH
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            set -e
-            cd /home/bot_server/test_zone/taxi_bot
-
-            echo "Pulling latest code..."
-            git fetch origin develop
-            git reset --hard origin/develop
-
-            echo "Building infrastructure..."
-            docker compose -f docker-compose.infrastructure.yml up -d --build
-
-            echo "Recreating app containers..."
-            docker compose -f docker-compose.yml up -d --build
-
-            echo "✅ Deployment complete!"
-          EOF
+               ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+               set -e
+               cd /home/bot_server/production/bot_infrastructure
+               
+               echo "Pulling latest code..."
+               git fetch origin main
+               git reset --hard origin/main
+          
+          #            echo "Building infrastructure..."
+          #            docker compose -f docker-compose.infrastructure.yml up -d --build
+          #
+          #            echo "Recreating app containers..."
+          #            docker compose -f docker-compose.yml up -d --build
+          #
+          #            echo "✅ Deployment complete!"
+               EOF
