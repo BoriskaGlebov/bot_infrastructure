@@ -24,7 +24,7 @@ jobs:
         run: docker compose -f docker-compose.infrastructure.yaml build
 
       - name: Run infrastructure containers
-        run: docker compose -f docker-compose.infrastructure.yaml up -d
+        run: docker compose -f docker-compose.infrastructure.yaml --env-file .env.infrastructure  up -d
 
       - name: Check containers health
         run: |
