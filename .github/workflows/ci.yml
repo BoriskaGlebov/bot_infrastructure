@@ -31,11 +31,11 @@ jobs:
 
       - name: Check containers health
         run: |
-          sleep 30
+          sleep 15
           docker ps
           docker compose ps
-          docker compose -f docker-compose.infrastructure.yaml logs postgres
-          docker compose -f docker-compose.infrastructure.yaml logs redis
+          docker compose -f docker-compose.infrastructure.yaml --env-file .env.infrastructure logs postgres
+          docker compose -f docker-compose.infrastructure.yaml --env-file .env.infrastructure logs redis
 
       - name: Stop infrastructure containers
         run: docker compose -f docker-compose.infrastructure.yaml --env-file .env.infrastructure down -v
