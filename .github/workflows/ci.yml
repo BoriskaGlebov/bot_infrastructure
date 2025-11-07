@@ -68,14 +68,20 @@ jobs:
             cd /home/bot_server/production/bot_infrastructure
 
             echo "Pulling latest code..."
-            git fetch origin main
-            git reset --hard origin/main
+            git fetch origin develop
+            git reset --hard origin/develop
+          
+            echo "Recreate .env.infrastructure file..."
+            rm -f .env.infrastructure
+
+            echo "DB_ROOT_DATABASE=${{ secrets.DB_ROOT_DATABASE }}" >> .env.infrastructure
+            echo "DB_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }}" >> .env.infrastructure
+            echo "DB_ROOT_USER=${{ secrets.DB_ROOT_USER }}" >> .env.infrastructure
+            echo "REDIS_ROOT_PASSWORD=${{ secrets.REDIS_ROOT_PASSWORD }}" >> .env.infrastructure
+            echo "REDIS_ROOT_USER=${{ secrets.REDIS_ROOT_USER }}" >> .env.infrastructure
 
             echo "Building infrastructure..."
-            docker compose -f docker-compose.infrastructure.yml up -d --build
-
-            echo "Recreating app containers..."
-            docker compose -f docker-compose.yml up -d --build
+            docker compose -f docker-compose.infrastructure.yaml  --env-file .env.infrastructure up -d --build
 
             echo "✅ Deployment complete!"
           EOF
