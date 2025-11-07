@@ -35,7 +35,7 @@ jobs:
           docker compose logs redis
 
       - name: Stop infrastructure containers
-        run: docker compose -f docker-compose.infrastructure.yaml down -v
+        run: docker compose -f docker-compose.infrastructure.yaml --env-file .env.infrastructure down -v
 
   deploy:
     name: 🚀 Deploy to server
