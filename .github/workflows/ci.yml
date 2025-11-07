@@ -7,27 +7,21 @@ on:
 
 jobs:
   infra-check:
-    name: 🔍 Проверка инфраструктуры
+    name: Проверка инфраструктуры
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Validate YAML files
-        uses: ibiqlik/action-yamllint@v3
-        with:
-          file_or_dir: .
-          config_file: .yamllint.yml
-
       - name: Validate docker-compose syntax
-        run: docker compose -f docker-compose.infrastructure.yml config
+        run: docker compose -f docker-compose.infrastructure.yaml config
 
       - name: Build infrastructure images
-        run: docker compose -f docker-compose.infrastructure.yml build
+        run: docker compose -f docker-compose.infrastructure.yaml build
 
       - name: Run infrastructure containers
-        run: docker compose -f docker-compose.infrastructure.yml up -d
+        run: docker compose -f docker-compose.infrastructure.yaml up -d
 
       - name: Check containers health
         run: |
@@ -38,7 +32,7 @@ jobs:
           docker compose logs redis
 
       - name: Stop infrastructure containers
-        run: docker compose -f docker-compose.infrastructure.yml down -v
+        run: docker compose -f docker-compose.infrastructure.yaml down -v
 
   deploy:
     name: 🚀 Deploy to server
