@@ -1,0 +1,111 @@
+name: CI
+#TODO нужен сборка многофайловая так же поменялись настойки для развертывания
+on:
+  pull_request:
+    types: [ opened, reopened,synchronize ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  lint:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ "3.12", "3.13" ]
+        poetry-version: [ "latest", "main", "1.8.0" ]
+        os: [ ubuntu-latest, ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up Poetry
+        uses: abatilo/actions-poetry@v4
+        with:
+          poetry-version: ${{ matrix.poetry-version }}
+
+      - name: View poetry --help
+        run: poetry --help
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          poetry install --no-root --with dev
+      - name: Run Black
+        run: poetry run black --check .
+      - name: Run isort
+        run: poetry run isort --check-only --profile black .
+      - name: Run Ruff
+        run: poetry run ruff check .
+
+      - name: Run Ruff Format
+        run: poetry run ruff format --check .
+      - name: Run mypy
+        run: poetry run pre-commit run mypy --all-files
+
+  deploy:
+    needs: lint
+    runs-on: ubuntu-latest
+    environment: develop  # <-- указываем окружение
+    if: github.ref == 'refs/heads/develop'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4  # Клонирование репозитория
+
+      - name: Deploy to server
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add known hosts
+        run: echo "${{ secrets.SERVER_IP }} $(ssh-keyscan -H ${{ secrets.SERVER_IP }})" >> ~/.ssh/known_hosts  # Добавление сервера в known_hosts
+
+      - name: Test SSH connection
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "whoami" && echo PRIVET # Проверка подключения
+
+      - name: Recreate .env and restart containers
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
+            set -e
+            cd /home/bot_server/test_zone/taxi_bot || exit 1
+
+            echo "Pull latest code..."
+            git fetch origin develop
+            git reset --hard origin/develop
+            git clean -fd
+
+            echo "Recreate .env file..."
+            rm -f .env
+
+            echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" >> .env
+            echo "ADMIN_IDS=${{ secrets.ADMIN_IDS }}" >> .env
+            echo "BASE_SITE=${{ secrets.BASE_SITE }}" >> .env
+            echo "OPENROUTSERVICE=${{ secrets.OPENROUTSERVICE }}" >> .env
+            echo "CITY_CENTER_COORDS=${{ vars.CITY_CENTER_COORDS }}" >> .env
+            echo "CENTER_RADIUS_KM=${{ vars.CENTER_RADIUS_KM }}" >> .env
+            echo "FIXED_PRICE=${{ vars.FIXED_PRICE }}" >> .env
+            echo "PRICE_PER_KM=${{ vars.PRICE_PER_KM }}" >> .env
+            echo "DEBUG_FAST_API=${{ vars.DEBUG_FAST_API }}" >> .env
+            echo "RELOAD_FAST_API=${{ vars.RELOAD_FAST_API }}" >> .env
+            echo "LOGGER_LEVEL_STDOUT=${{ vars.LOGGER_LEVEL_STDOUT }}" >> .env
+            echo "LOGGER_LEVEL_FILE=${{ vars.LOGGER_LEVEL_FILE }}" >> .env
+            echo "LOGGER_ERROR_FILE=${{ vars.LOGGER_ERROR_FILE }}" >> .env
+            echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+            echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+            echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
+            echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
+            echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
+            echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
+            echo "USE_POLLING=${{ vars.USE_POLLING }}" >> .env
+
+            echo "Restart Docker containers..."
+            make compose-down STAGE=prod
+            make compose-up STAGE=prod
+          EOF
