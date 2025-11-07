@@ -40,41 +40,41 @@ jobs:
       - name: Stop infrastructure containers
         run: docker compose -f docker-compose.infrastructure.yaml --env-file .env.infrastructure down -v
 
-  deploy:
-    name: 🚀 Deploy to server
-    needs: infra-check
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
-    environment:
-      name: production
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Add known hosts
-        run: ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
-
-      - name: Deploy via SSH
-        run: |
-               ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-               set -e
-               cd /home/bot_server/production/bot_infrastructure
-               
-               echo "Pulling latest code..."
-               git fetch origin main
-               git reset --hard origin/main
-          
-          #            echo "Building infrastructure..."
-          #            docker compose -f docker-compose.infrastructure.yml up -d --build
-          #
-          #            echo "Recreating app containers..."
-          #            docker compose -f docker-compose.yml up -d --build
-          #
-          #            echo "✅ Deployment complete!"
-               EOF
+#  deploy:
+#    name: 🚀 Deploy to server
+#    needs: infra-check
+#    runs-on: ubuntu-latest
+#    if: github.ref == 'refs/heads/develop'
+#    environment:
+#      name: production
+#
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v4
+#
+#      - name: Setup SSH
+#        uses: webfactory/ssh-agent@v0.5.3
+#        with:
+#          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+#
+#      - name: Add known hosts
+#        run: ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+#
+#      - name: Deploy via SSH
+#        run: |
+#               ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+#               set -e
+#               cd /home/bot_server/production/bot_infrastructure
+#
+#               echo "Pulling latest code..."
+#               git fetch origin main
+#               git reset --hard origin/main
+#
+#          #            echo "Building infrastructure..."
+#          #            docker compose -f docker-compose.infrastructure.yml up -d --build
+#          #
+#          #            echo "Recreating app containers..."
+#          #            docker compose -f docker-compose.yml up -d --build
+#          #
+#          #            echo "✅ Deployment complete!"
+#               EOF
