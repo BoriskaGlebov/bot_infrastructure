@@ -14,6 +14,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Prepare env file
+        run: cp .env.infrastructure.example .env.infrastructure
+
       - name: Validate docker-compose syntax
         run: docker compose -f docker-compose.infrastructure.yaml config
 
