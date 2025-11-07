@@ -33,7 +33,7 @@ jobs:
         run: |
           sleep 15
           docker ps
-          docker compose docker compose -f docker-compose.infrastructure.yaml --env-file .env.infrastructure ps
+          docker compose -f docker-compose.infrastructure.yaml --env-file .env.infrastructure ps
           docker compose -f docker-compose.infrastructure.yaml --env-file .env.infrastructure logs postgres
           docker compose -f docker-compose.infrastructure.yaml --env-file .env.infrastructure logs redis
 
