@@ -34,8 +34,8 @@ jobs:
           sleep 30
           docker ps
           docker compose ps
-          docker compose logs postgres
-          docker compose logs redis
+          docker compose -f docker-compose.infrastructure.yaml logs postgres
+          docker compose -f docker-compose.infrastructure.yaml logs redis
 
       - name: Stop infrastructure containers
         run: docker compose -f docker-compose.infrastructure.yaml --env-file .env.infrastructure down -v
