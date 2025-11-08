@@ -79,11 +79,11 @@ jobs:
             echo "DB_ROOT_USER=${{ secrets.DB_ROOT_USER }}" >> .env.infrastructure
             echo "REDIS_ROOT_PASSWORD=${{ secrets.REDIS_ROOT_PASSWORD }}" >> .env.infrastructure
             echo "REDIS_ROOT_USER=${{ secrets.REDIS_ROOT_USER }}" >> .env.infrastructure
-            echo "DB_USER=${{ secrets.DB_USER }}" >> .env.infrastructure
-            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env.infrastructure
-            echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env.infrastructure
-            echo "REDIS_USER=${{ secrets.REDIS_USER }}" >> .env.infrastructure
-            echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env.infrastructure
+            echo "DB_USERS=${{ secrets.DB_USERS }}" >> .env.infrastructure
+            echo "DB_PASSWORDS=${{ secrets.DB_PASSWORDS }}" >> .env.infrastructure
+            echo "DB_DATABASES=${{ secrets.DB_DATABASES }}" >> .env.infrastructure
+            echo "REDIS_USERS=${{ secrets.REDIS_USERS }}" >> .env.infrastructure
+            echo "REDIS_PASSWORDS=${{ secrets.REDIS_PASSWORDS }}" >> .env.infrastructure
             
             
             echo "Building infrastructure with retry..."
