@@ -1,14 +1,16 @@
+-- ==============================================
+-- Создание PostgreSQL роли
+-- ==============================================
 DO $$
 BEGIN
    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${DB_USER}') THEN
       CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASSWORD}';
    END IF;
-
-   IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '${DB_DATABASE}') THEN
-      CREATE DATABASE ${DB_DATABASE} OWNER ${DB_USER};
-   END IF;
-
-   ALTER DATABASE ${DB_DATABASE} OWNER TO ${DB_USER};
-   GRANT ALL PRIVILEGES ON DATABASE ${DB_DATABASE} TO ${DB_USER};
 END
 $$;
+
+-- ==============================================
+-- Привилегии будут выданы после создания базы
+-- ==============================================
+-- GRANT ALL PRIVILEGES ON DATABASE ${DB_DATABASE} TO ${DB_USER};
+-- Создание базы выполняется в bash-скрипте, чтобы избежать ошибок при существующей базе
