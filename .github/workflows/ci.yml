@@ -79,9 +79,15 @@ jobs:
             echo "DB_ROOT_USER=${{ secrets.DB_ROOT_USER }}" >> .env.infrastructure
             echo "REDIS_ROOT_PASSWORD=${{ secrets.REDIS_ROOT_PASSWORD }}" >> .env.infrastructure
             echo "REDIS_ROOT_USER=${{ secrets.REDIS_ROOT_USER }}" >> .env.infrastructure
-
+            echo "DB_USER=${{ secrets.DB_USER }}" >> .env.infrastructure
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env.infrastructure
+            echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env.infrastructure
+            echo "REDIS_USER=${{ secrets.REDIS_USER }}" >> .env.infrastructure
+            echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env.infrastructure
+            
+            
             echo "Building infrastructure..."
-            docker compose -f docker-compose.infrastructure.yaml  --env-file .env.infrastructure up -d --build
+            make infra-all
 
             echo "✅ Deployment complete!"
           EOF
