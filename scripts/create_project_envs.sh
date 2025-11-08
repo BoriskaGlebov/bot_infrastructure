@@ -66,7 +66,7 @@ REDIS_URI_ROOT="redis://$REDIS_ROOT_USER:$REDIS_ROOT_PASSWORD@localhost:6379"
 REDIS_URI_USER="redis://$REDIS_USER:$REDIS_PASSWORD@localhost:6379"
 
 echo "Создаём Redis пользователя через root URI..."
-docker exec -i redis_cache redis-cli -u "$REDIS_URI_ROOT" ACL SETUSER "$REDIS_USER" on ">${REDIS_PASSWORD}" +@all
+docker exec -i redis_cache redis-cli -u "$REDIS_URI_ROOT" ACL SETUSER "$REDIS_USER" on ">${REDIS_PASSWORD}" ~* +@all
 
 # Проверка нового пользователя через URI
 if docker exec -i redis_cache redis-cli -u "$REDIS_URI_USER" ping | grep -q PONG; then
