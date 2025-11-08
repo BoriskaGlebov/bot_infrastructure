@@ -1,78 +1,74 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# -------------------- Пути --------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 INFRA_ENV_FILE="${PROJECT_ROOT}/.env.infrastructure"
 
-# -------------------- Проверка .env --------------------
 if [ ! -f "$INFRA_ENV_FILE" ]; then
-  echo "Не найден $INFRA_ENV_FILE"
+  echo "❌ Не найден $INFRA_ENV_FILE"
   exit 1
 fi
 
 export $(grep -v '^#' "$INFRA_ENV_FILE" | xargs)
 
-PROJECT_ENV_FILE=${1:-"${PROJECT_ROOT}/.env"}
-if [ ! -f "$PROJECT_ENV_FILE" ]; then
-  echo "Файл $PROJECT_ENV_FILE не найден."
-  exit 1
-fi
-
-export $(grep -v '^#' "$PROJECT_ENV_FILE" | xargs)
-
 # -------------------- Проверка контейнеров --------------------
-if ! docker ps --format '{{.Names}}' | grep -q '^postgres_db$'; then
-  echo "Контейнер postgres_db не запущен. Запусти инфраструктуру командой:"
-  echo "   docker compose up -d postgres"
-  exit 1
-fi
-
-if ! docker ps --format '{{.Names}}' | grep -q '^redis_cache$'; then
-  echo "Контейнер redis_cache не запущен. Запусти инфраструктуру командой:"
-  echo "   docker compose up -d redis"
-  exit 1
-fi
+for container in postgres_db redis_cache; do
+  if ! docker ps --format '{{.Names}}' | grep -q "^${container}$"; then
+    echo "❌ Контейнер $container не запущен."
+    exit 1
+  fi
+done
 
 # -------------------- PostgreSQL --------------------
-echo "Создаём PostgreSQL пользователя..."
-docker exec -i postgres_db psql -U "$DB_ROOT_USER" -d "$DB_ROOT_DATABASE" -c "
-DO \$\$
-BEGIN
-   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '$DB_USER') THEN
-      CREATE ROLE $DB_USER LOGIN PASSWORD '$DB_PASSWORD';
-   END IF;
-END
-\$\$;
-"
+IFS=',' read -r -a DB_USERS_ARR <<< "$DB_USERS"
+IFS=',' read -r -a DB_PASSWORDS_ARR <<< "$DB_PASSWORDS"
+IFS=',' read -r -a DB_DATABASES_ARR <<< "$DB_DATABASES"
 
-# Проверяем, существует ли база
-EXISTS=$(docker exec -i postgres_db psql -U "$DB_ROOT_USER" -d "$DB_ROOT_DATABASE" -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_DATABASE';")
-if [ "$EXISTS" != "1" ]; then
-    echo "🚀 Создаём PostgreSQL базу..."
-    docker exec -i postgres_db psql -U "$DB_ROOT_USER" -d "$DB_ROOT_DATABASE" -c "CREATE DATABASE $DB_DATABASE OWNER $DB_USER;"
-else
-    echo "База $DB_DATABASE уже существует, пропускаем создание."
-fi
+for i in "${!DB_USERS_ARR[@]}"; do
+  USER="${DB_USERS_ARR[$i]}"
+  PASS="${DB_PASSWORDS_ARR[$i]}"
+  DB="${DB_DATABASES_ARR[$i]}"
 
-# GRANT привилегии
-docker exec -i postgres_db psql -U "$DB_ROOT_USER" -d "$DB_DATABASE" -c "GRANT ALL PRIVILEGES ON DATABASE $DB_DATABASE TO $DB_USER;"
+  echo "🚀 Создаём PostgreSQL пользователя $USER и базу $DB..."
+  docker exec -i postgres_db psql -U "$DB_ROOT_USER" -d "$DB_ROOT_DATABASE" -c "
+  DO \$\$
+  BEGIN
+    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '$USER') THEN
+      CREATE ROLE $USER LOGIN PASSWORD '$PASS';
+    END IF;
+  END
+  \$\$;"
 
-echo "PostgreSQL: пользователь и база созданы."
+  EXISTS=$(docker exec -i postgres_db psql -U "$DB_ROOT_USER" -d "$DB_ROOT_DATABASE" -tAc "SELECT 1 FROM pg_database WHERE datname='$DB';")
+  if [ "$EXISTS" != "1" ]; then
+      docker exec -i postgres_db psql -U "$DB_ROOT_USER" -d "$DB_ROOT_DATABASE" -c "CREATE DATABASE $DB OWNER $USER;"
+  fi
+
+  docker exec -i postgres_db psql -U "$DB_ROOT_USER" -d "$DB" -c "GRANT ALL PRIVILEGES ON DATABASE $DB TO $USER;"
+done
+
+echo "✅ PostgreSQL пользователи и базы готовы."
 
 # -------------------- Redis --------------------
+IFS=',' read -r -a REDIS_USERS_ARR <<< "$REDIS_USERS"
+IFS=',' read -r -a REDIS_PASSWORDS_ARR <<< "$REDIS_PASSWORDS"
+
 REDIS_URI_ROOT="redis://$REDIS_ROOT_USER:$REDIS_ROOT_PASSWORD@localhost:6379"
-REDIS_URI_USER="redis://$REDIS_USER:$REDIS_PASSWORD@localhost:6379"
 
-echo "Создаём Redis пользователя через root URI..."
-docker exec -i redis_cache redis-cli -u "$REDIS_URI_ROOT" ACL SETUSER "$REDIS_USER" on ">${REDIS_PASSWORD}" ~* +@all
+for i in "${!REDIS_USERS_ARR[@]}"; do
+  RUSER="${REDIS_USERS_ARR[$i]}"
+  RPASS="${REDIS_PASSWORDS_ARR[$i]}"
 
-# Проверка нового пользователя через URI
-if docker exec -i redis_cache redis-cli -u "$REDIS_URI_USER" ping | grep -q PONG; then
-    echo "Redis: пользователь ${REDIS_USER} успешно создан и работает."
-else
-    echo "Redis: не удалось создать пользователя ${REDIS_USER}."
-fi
+  echo "🚀 Создаём Redis пользователя $RUSER..."
+  docker exec -i redis_cache redis-cli -u "$REDIS_URI_ROOT" ACL SETUSER "$RUSER" on ">${RPASS}" ~* +@all
 
-echo "Все пользователи и базы созданы!"
+  REDIS_URI_USER="redis://$RUSER:$RPASS@localhost:6379"
+  if docker exec -i redis_cache redis-cli -u "$REDIS_URI_USER" ping | grep -q PONG; then
+    echo "✅ Redis пользователь $RUSER успешно создан."
+  else
+    echo "⚠️ Не удалось проверить Redis пользователя $RUSER."
+  fi
+done
+
+echo "🎉 Все пользователи и базы успешно созданы!"
