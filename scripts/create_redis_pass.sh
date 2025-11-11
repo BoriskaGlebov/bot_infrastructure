@@ -13,12 +13,13 @@ fi
 # Загружаем переменные окружения
 export $(grep -v '^#' "$ENV_FILE" | xargs)
 
-SECRETS_FILE="redis.pass.conf"
+SECRETS_FILE="${PROJECT_ROOT}/redis.pass.conf"
 echo "Создаём $SECRETS_FILE..."
-
+# Создаем новый файл с нуля
+: > "$SECRETS_FILE"  # очищаем или создаем файл
 # Начальные ACL
-echo "user default off" > "$SECRETS_FILE"
-echo "user $REDIS_ROOT_USER on >$REDIS_ROOT_PASSWORD allcommands allkeys" >> "$SECRETS_FILE"
+#echo "user default off" > "$SECRETS_FILE"
+#echo "user $REDIS_ROOT_USER on >$REDIS_ROOT_PASSWORD allcommands allkeys" >> "$SECRETS_FILE"
 
 # Обычные пользователи
 IFS=',' read -r -a REDIS_USERS_ARR <<< "$REDIS_USERS"
