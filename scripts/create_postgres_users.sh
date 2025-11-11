@@ -30,7 +30,7 @@ for i in "${!DB_USERS_ARR[@]}"; do
   PASS="${DB_PASSWORDS_ARR[$i]}"
   DB="${DB_DATABASES_ARR[$i]}"
 
-  echo "🚀 Создаём PostgreSQL пользователя $USER и базу $DB..."
+  echo "Создаём PostgreSQL пользователя $USER и базу $DB..."
   docker exec -i postgres_db psql -U "$DB_ROOT_USER" -d "$DB_ROOT_DATABASE" -c "
   DO \$\$
   BEGIN
@@ -49,26 +49,3 @@ for i in "${!DB_USERS_ARR[@]}"; do
 done
 
 echo "✅ PostgreSQL пользователи и базы готовы."
-
-# -------------------- Redis --------------------
-IFS=',' read -r -a REDIS_USERS_ARR <<< "$REDIS_USERS"
-IFS=',' read -r -a REDIS_PASSWORDS_ARR <<< "$REDIS_PASSWORDS"
-
-REDIS_URI_ROOT="redis://$REDIS_ROOT_USER:$REDIS_ROOT_PASSWORD@localhost:6379"
-
-for i in "${!REDIS_USERS_ARR[@]}"; do
-  RUSER="${REDIS_USERS_ARR[$i]}"
-  RPASS="${REDIS_PASSWORDS_ARR[$i]}"
-
-  echo "🚀 Создаём Redis пользователя $RUSER..."
-  docker exec -i redis_cache redis-cli -u "$REDIS_URI_ROOT" ACL SETUSER "$RUSER" on ">${RPASS}" ~* +@all
-
-  REDIS_URI_USER="redis://$RUSER:$RPASS@localhost:6379"
-  if docker exec -i redis_cache redis-cli -u "$REDIS_URI_USER" ping | grep -q PONG; then
-    echo "✅ Redis пользователь $RUSER успешно создан."
-  else
-    echo "⚠️ Не удалось проверить Redis пользователя $RUSER."
-  fi
-done
-
-echo "🎉 Все пользователи и базы успешно созданы!"

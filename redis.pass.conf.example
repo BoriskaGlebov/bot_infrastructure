@@ -1,0 +1,4 @@
+# Обычные пользователи
+user user on >password ~* +@all
+user user on >user ~* +@all
+user user on >user ~* +@all

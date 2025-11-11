@@ -3,7 +3,8 @@ DC ?= docker compose
 
 INFRA_FILE = docker-compose.infrastructure.yaml
 INFRA_ENV_FILE = .env.infrastructure
-CREATE_SCRIPT = scripts/create_project_envs.sh
+CREATE_POSTGRES_SCRIPT = scripts/create_postgres_users.sh
+CREATE_REDIS_SCRIPT = scripts/create_redis_pass.sh
 PROJECT_ENV_FILE = .env.infrastructure
 # ===================== Основные команды =====================
 
@@ -36,15 +37,21 @@ infra-down:
 
 create-envs:
 	@echo "🛠 Создаём пользователей и базы из $(PROJECT_ENV_FILE)..."
-	bash $(CREATE_SCRIPT) $(PROJECT_ENV_FILE)
+	bash $(CREATE_POSTGRES_SCRIPT) $(PROJECT_ENV_FILE)
+	@echo "✅ Пользователи и базы созданы!"
+create-redis:
+	@echo "🛠 Создаём redis.pass.conf"
+	bash $(CREATE_REDIS_SCRIPT) $(PROJECT_ENV_FILE)
 	@echo "✅ Пользователи и базы созданы!"
 
 # ===================== Combined =====================
 
-infra-all: infra-up
+infra-all:
+	@echo  "Создать конфиг паролей redis"
+	make create-redis
 	@echo "⏳ Ждём, пока контейнеры станут готовыми..."
-	@sleep 40
+	@sleep 10
 	@echo "🛠 Создаём пользователей и базы..."
-	bash $(CREATE_SCRIPT) $(PROJECT_ENV_FILE)
+	make create-envs
 	@echo "🎉 Инфраструктура поднята и env создан!"
 

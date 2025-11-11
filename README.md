@@ -51,6 +51,15 @@ DB_ROOT_DATABASE=bot_db
 # Redis
 REDIS_ROOT_USER=admin_user
 REDIS_ROOT_PASSWORD=StrongPassword
+
+# Credentials for project services
+DB_USERS=your_user,your_user1
+DB_PASSWORDS=your_password,your_password1
+DB_DATABASES=your_db,your_db1
+
+# Настройки базы данных Redis
+REDIS_USERS=your_user,your_user1
+REDIS_PASSWORDS=your_password,your_password1
 ```
 
 ---
