@@ -133,7 +133,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER2 }}@${{ secrets.SERVER_IP2 }} << 'EOF'
             set -e
-            cd /home/taxi_bot/bot_infrastructure
+            cd /home/taxi_bot/production/bot_infrastructure
 
             echo "Pulling latest code..."
             git fetch origin main
