@@ -40,8 +40,8 @@ jobs:
       - name: Stop infrastructure containers
         run: docker compose -f docker-compose.infrastructure.yaml --env-file .env.infrastructure down -v
 
-  deploy:
-    name: Deploy to server
+  deploy1:
+    name: Deploy to server1
     needs: infra-check
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -61,7 +61,7 @@ jobs:
       - name: Add known hosts
         run: ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-      - name: Deploy via SSH
+      - name: Deploy via SSH-bot-help-blocks.ru
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             set -e
@@ -106,5 +106,73 @@ jobs:
               exit 1
             fi
       
+            echo "Deployment complete!"
+          EOF
+  deploy2:
+    name: Deploy to server2
+    needs: infra-check
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY2 }}
+
+      - name: Add known hosts
+        run: ssh-keyscan -H ${{ secrets.SERVER_IP2 }} >> ~/.ssh/known_hosts
+
+      - name: Deploy via SSH-bot-help-blocks.ru
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER2 }}@${{ secrets.SERVER_IP2 }} << 'EOF'
+            set -e
+            cd /home/bot_server/production/bot_infrastructure
+
+            echo "Pulling latest code..."
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "Recreate .env.infrastructure file..."
+            rm -f .env.infrastructure
+
+            echo "DB_ROOT_DATABASE=${{ secrets.DB_ROOT_DATABASE }}" >> .env.infrastructure
+            echo "DB_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }}" >> .env.infrastructure
+            echo "DB_ROOT_USER=${{ secrets.DB_ROOT_USER }}" >> .env.infrastructure
+            echo "REDIS_ROOT_PASSWORD=${{ secrets.REDIS_ROOT_PASSWORD }}" >> .env.infrastructure
+            echo "REDIS_ROOT_USER=${{ secrets.REDIS_ROOT_USER }}" >> .env.infrastructure
+            echo "DB_USERS=${{ secrets.DB_USERS }}" >> .env.infrastructure
+            echo "DB_PASSWORDS=${{ secrets.DB_PASSWORDS }}" >> .env.infrastructure
+            echo "DB_DATABASES=${{ secrets.DB_DATABASES }}" >> .env.infrastructure
+            echo "REDIS_USERS=${{ secrets.REDIS_USERS }}" >> .env.infrastructure
+            echo "REDIS_PASSWORDS=${{ secrets.REDIS_PASSWORDS }}" >> .env.infrastructure
+
+
+            echo "Building infrastructure with retry..."
+            MAX_ATTEMPTS=3
+            COUNT=0
+            until [ $COUNT -ge $MAX_ATTEMPTS ]
+            do
+              if make infra-all; then
+                echo "Infrastructure built successfully!"
+                break
+              else
+                COUNT=$((COUNT+1))
+                echo "Attempt $COUNT/$MAX_ATTEMPTS failed. Retrying in 5s..."
+                sleep 5
+              fi
+            done
+
+            if [ $COUNT -eq $MAX_ATTEMPTS ]; then
+              echo "Failed to build infrastructure after $MAX_ATTEMPTS attempts."
+              exit 1
+            fi
+
             echo "Deployment complete!"
           EOF
