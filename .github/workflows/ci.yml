@@ -129,7 +129,7 @@ jobs:
       - name: Add known hosts
         run: ssh-keyscan -H ${{ secrets.SERVER_IP2 }} >> ~/.ssh/known_hosts
 
-      - name: Deploy via SSH-bot-help-blocks.ru
+      - name: Deploy via SSH-taxi_bot
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER2 }}@${{ secrets.SERVER_IP2 }} << 'EOF'
             set -e
@@ -198,11 +198,11 @@ jobs:
       - name: Add known hosts
         run: ssh-keyscan -H ${{ secrets.SERVER_IP3 }} >> ~/.ssh/known_hosts
 
-      - name: Deploy via SSH-bot-help-blocks.ru
+      - name: Deploy via SSH-prod_server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER3 }}@${{ secrets.SERVER_IP3 }} << 'EOF'
             set -e
-            cd /home/taxi_bot/production/bot_infrastructure
+            cd /home/prod_server/production/bot_infrastructure
 
             echo "Pulling latest code..."
             git fetch origin main
