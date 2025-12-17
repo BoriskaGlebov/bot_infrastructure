@@ -41,7 +41,7 @@ jobs:
         run: docker compose -f docker-compose.infrastructure.yaml --env-file .env.infrastructure down -v
 
   deploy_bot_server:
-    name: Deploy to server1
+    name: Deploy to bot_server
     needs: infra-check
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -109,7 +109,7 @@ jobs:
             echo "Deployment complete!"
           EOF
   deploy_taxi_bot:
-    name: Deploy to server2
+    name: Deploy to taxi_bot
     needs: infra-check
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -177,8 +177,8 @@ jobs:
             echo "Deployment complete!"
           EOF
 
-  deploy_prdo_server:
-    name: Deploy to server3
+  deploy_prod_server:
+    name: Deploy to prod_server
     needs: infra-check
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
