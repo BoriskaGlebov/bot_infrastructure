@@ -112,7 +112,7 @@ jobs:
     name: Deploy to taxi_bot
     needs: infra-check
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/dev'
     environment:
       name: production
 
