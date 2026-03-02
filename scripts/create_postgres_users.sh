@@ -46,6 +46,7 @@ for i in "${!DB_USERS_ARR[@]}"; do
   fi
 
   docker exec -i postgres_db psql -U "$DB_ROOT_USER" -d "$DB" -c "GRANT ALL PRIVILEGES ON DATABASE $DB TO $USER;"
+  docker exec -i postgres_db psql -U "$DB_ROOT_USER" -d "$DB" -c "CREATE EXTENSION IF NOT EXISTS vector;"
 done
 
 echo "✅ PostgreSQL пользователи и базы готовы."

@@ -208,3 +208,4 @@ __marimo__/
 /.env.infrastructure
 /redis.pass.conf
 /redis.secrets.conf
+/images/
