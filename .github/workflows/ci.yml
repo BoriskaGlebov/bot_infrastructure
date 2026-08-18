@@ -65,7 +65,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             set -e
-            cd /opt/bot_infrastructure
+            cd home/bot_server/production/bot_infrastructure/
 
             echo "Pulling latest code..."
             git fetch origin main
