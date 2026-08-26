@@ -11,15 +11,18 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 # Загружаем переменные окружения
-export $(grep -v '^#' "$ENV_FILE" | xargs)
+set -a
+source "$ENV_FILE"
+set +a
 
 SECRETS_FILE="${PROJECT_ROOT}/redis.pass.conf"
 echo "Создаём $SECRETS_FILE..."
-# Создаем новый файл с нуля
-: > "$SECRETS_FILE"  # очищаем или создаем файл
-# Начальные ACL
-#echo "user default off" > "$SECRETS_FILE"
-#echo "user $REDIS_ROOT_USER on >$REDIS_ROOT_PASSWORD allcommands allkeys" >> "$SECRETS_FILE"
+# Создаем новый файл с нуля и сразу ограничиваем права,
+# т.к. файл содержит пароли в открытом виде
+: > "$SECRETS_FILE"
+chmod 600 "$SECRETS_FILE"
+
+IDENT_RE='^[A-Za-z_][A-Za-z0-9_]*$'
 
 # Обычные пользователи
 IFS=',' read -r -a REDIS_USERS_ARR <<< "$REDIS_USERS"
@@ -28,6 +31,12 @@ IFS=',' read -r -a REDIS_PASSWORDS_ARR <<< "$REDIS_PASSWORDS"
 for i in "${!REDIS_USERS_ARR[@]}"; do
     RUSER="${REDIS_USERS_ARR[$i]}"
     RPASS="${REDIS_PASSWORDS_ARR[$i]}"
+
+    if [[ ! "$RUSER" =~ $IDENT_RE || "$RPASS" =~ [[:space:]] ]]; then
+        echo "❌ Недопустимое имя пользователя или пароль (содержит пробел): $RUSER"
+        exit 1
+    fi
+
     echo "user $RUSER on >$RPASS ~* +@all" >> "$SECRETS_FILE"
 done
 
