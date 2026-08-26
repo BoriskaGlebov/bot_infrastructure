@@ -41,7 +41,7 @@ jobs:
         run: docker compose -f docker-compose.infrastructure.yaml --env-file .env.infrastructure down -v
 
   deploy_prod_server:
-    name: Deploy to help-blocks.ru server
+    name: Deploy to PROD help-blocks.ru server
     needs: infra-check
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -110,7 +110,7 @@ jobs:
           EOF
 
   deploy_dev_server:
-    name: Deploy to amn-boris.ru server
+    name: Deploy to DEVELOP amn-boris.ru server
     needs: infra-check
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/develop'
