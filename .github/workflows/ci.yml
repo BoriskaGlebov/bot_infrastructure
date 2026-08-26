@@ -110,7 +110,7 @@ jobs:
           EOF
 
   deploy_dev_server:
-    name: Deploy to vpn-boriska.ru server
+    name: Deploy to amn-boris.ru server
     needs: infra-check
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/develop'
@@ -124,14 +124,14 @@ jobs:
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.5.3
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY2 }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Add known hosts
-        run: ssh-keyscan -H ${{ secrets.SERVER_IP2 }} >> ~/.ssh/known_hosts
+        run: ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
       - name: Deploy via SSH-vpn-boriska.ru
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER2 }}@${{ secrets.SERVER_IP2 }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             set -e
             cd /opt/bot_infrastructure
 
