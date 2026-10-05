@@ -153,7 +153,6 @@ jobs:
             echo "REDIS_USERS=${{ secrets.REDIS_USERS }}" >> .env.infrastructure
             echo "REDIS_PASSWORDS=${{ secrets.REDIS_PASSWORDS }}" >> .env.infrastructure
 
-
             echo "Building infrastructure with retry..."
             MAX_ATTEMPTS=3
             COUNT=0
