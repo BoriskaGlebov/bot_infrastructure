@@ -61,7 +61,7 @@ jobs:
       - name: Add known hosts
         run: ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-      - name: Deploy via SSH-bot-help-blocks.ru
+      - name: Deploy via SSH-bot-boris-guard.pro
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             set -e
