@@ -41,7 +41,7 @@ jobs:
         run: docker compose -f docker-compose.infrastructure.yaml --env-file .env.infrastructure down -v
 
   deploy_prod_server:
-    name: Deploy to help-blocks.ru server
+    name: Deploy to boris-guard.pro server
     needs: infra-check
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
