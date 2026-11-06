@@ -110,7 +110,7 @@ jobs:
           EOF
 
   deploy_dev_server:
-    name: Deploy to DEVELOP amn-boris.ru server
+    name: Deploy to DEVELOP vps01.boris-guard.pro server
     needs: infra-check
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/develop'
