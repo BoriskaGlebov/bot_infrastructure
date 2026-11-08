@@ -41,7 +41,7 @@ jobs:
         run: docker compose -f docker-compose.infrastructure.yaml --env-file .env.infrastructure down -v
 
   deploy_prod_server:
-    name: Deploy to PROD help-blocks.ru server
+    name: Deploy to PROD vps05.boris-guard.pro server
     needs: infra-check
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -61,7 +61,7 @@ jobs:
       - name: Add known hosts
         run: ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-      - name: Deploy via SSH-bot-help-blocks.ru
+      - name: Deploy via SSH-bot-vps05.boris-guard.pro
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             set -e
