@@ -43,7 +43,6 @@ create-redis:
 	@echo "🛠 Создаём redis.pass.conf"
 	bash $(CREATE_REDIS_SCRIPT) $(PROJECT_ENV_FILE)
 	@echo "✅ Пользователи и базы созданы!"
-
 # ===================== Combined =====================
 
 infra-all:
